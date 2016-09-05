@@ -1,0 +1,174 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Beautify Citations</title>
+  <meta charset="utf-8">
+  <link rel='stylesheet' href='../dependencies/bootstrap.min.css' type='text/css' />
+  <link rel='stylesheet' href='style.css' type='text/css' />
+  <script src='../dependencies/angular.min.js'></script>
+</head>
+
+<body class='container' ng-app='beautifyCitation' ng-controller='CiteCtrl'>
+  <div class='row'>
+    <div class='col-md-12'>
+      <h1 id='title'>Beautify Citations</h1>
+      <!--<p>Is the citation broken up by colons?</p>
+      <form name='colons'>
+        <label>
+          <input type='radio' ng-model='delim' value=':' />
+          yes
+        </label>
+        <label>
+          <input type='radio' ng-model='delim' ng-value='tab' />
+          no
+        </label>
+      </form>-->
+    </div>
+  </div>
+  <div class='row'>
+    <div class='col-md-6'>
+      <textarea id='uglycite' ng-model="orig" placeholder="Enter your ugly citation here.">
+      </textarea>
+      <br />
+      <button type="button" class="btn btn-primary" ng-click='beautify()'>Beautify</button>
+      <button type='button' class="btn btn-danger" ng-click="clearInput()">Clear</button>
+    </div>
+    <div class='col-md-6'>
+      <textarea id='tobelinear' ng-model='tolin' placeholder="Linearize some of that?" style='visibility: hidden'></textarea>
+      <button id='linearbtn' type="button" class="btn btn-success" ng-click='linearize()' style='visibility: hidden'>Yes</button>
+    </div>
+  </div>
+  <div class='row output-row'>
+    <div class='col-md-12'>
+      <textarea id='output' ng-model='edited'></textarea>
+      <button type="button" class="btn btn-primary" ng-click="copyOutput('output')">Copy</button>
+    </div>
+  </div>
+  <div id='urlsfound' class='row' style='display: none'>
+    <div class='col-md-12'>
+      <h2>We found the following URL:</h2>
+      <textarea id='url' ng-bind='discoveredURLs' style='height: 25px'></textarea>
+      <button type="button" class="btn btn-primary" ng-click="copyOutput('url')">Copy</button>
+    </div>
+  </div>
+  <div class='row'>
+    <div class='col-md-12'>
+      <h2 class='primary'>The following was deleted from the citation:</h2>
+      <pre ng-bind='deleted'></pre>
+    </div>
+  </div>
+
+  <script>
+    app = angular.module('beautifyCitation', [])
+      .controller('CiteCtrl', function($scope, $filter) {
+        $scope.orig = "";
+        $scope.tolin = "";
+        $scope.edited = "";
+        $scope.discoveredURLs = "";
+        $scope.deleted = "";
+        // $scope.delim = ':';
+        $scope.deleted = "";
+        $scope.tab = String.fromCharCode(9);
+        $scope.clearInput = function() {
+          $scope.orig='';
+          $scope.edited = '';
+          $scope.discoveredURLs = "";
+          $scope.deleted = '';
+          $scope.tolin = '';
+          var el = document.getElementById('urlsfound');
+          el.style.display = 'none';
+          el = document.getElementById('tobelinear');
+          el.style.visibility = 'hidden';
+          el = document.getElementById('linearbtn');
+          el.style.visibility = 'hidden';
+        };
+
+        $scope.beautify = function() {
+          $scope.deleted = "";
+          var l, out='', z = 1, i, t,
+            lines = $scope.orig.split('\n'),
+            numLines = lines.length,
+            spaces = [String.fromCharCode(9), ' '];
+          for (i = 0; i < numLines; i++) {
+            // l = lines[i].split($scope.delim);
+            t = 1;
+            l = lines[i].split($scope.tab);
+            while(t){
+              if (l[0][l[0].length-1] === ':' || l[0][l[0].length-1] === ' ') {
+                l[0] = l[0].substring(0,l[0].length-1);
+              } else t=0;
+            }
+            if (l.length == 2) {
+              z++;
+              var right = "",
+                len = l[1].length;
+              for (var j = 0; j < len; j++) {
+                if (l[1][j] != spaces[0] && l[1][j] != spaces[1]) break;
+              };
+              if (len - j > 0) {
+                for (j = j; j < l[1].length; j++) {
+                  if (l[1].length != spaces[0]) right += l[1][j];
+                }
+                if (right==='-'){
+                  $scope.deleted += l[0]+': -\n';
+                } else {out += l[0] + ': ' + right + '\n';}
+              } else {$scope.deleted += l[0] + ':\n';};
+            } else {
+              if (lines[i].length !== 1) $scope.deleted += lines[i] + '\n';
+            };
+          };
+          out = out.substring(0, out.length-1);
+          $scope.edited = out;
+          var el = document.getElementById('output');
+          var h = z*14;
+          el.style.height = h + "px";
+
+          // search for URLs and print them if found
+          var urlExpression = "(http|ftp|https):\\/\\/([\\w_-]+(?:(?:\\.[\\w_-]+)+))([\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-])?";
+          var regex = new RegExp(urlExpression);
+          var urls = regex.exec($scope.orig);
+          if (urls !== null) {
+            el = document.getElementById('urlsfound');
+            el.style.display = '';
+            $scope.discoveredURLs += urls[0];
+          }
+
+          // make the linearize section visible
+          el = document.getElementById('tobelinear');
+          el.style.visibility = 'visible';
+          el = document.getElementById('linearbtn')
+          el.style.visibility = 'visible';
+        };
+
+        $scope.linearize = function(){
+          var i, out = '',
+            lines = $scope.tolin.split('\n'),
+            numLines = lines.length;
+          for (i = 0 ; i < numLines ; i++){
+            out += lines[i]+';';
+            if (i+1!==numLines) out += ' ';
+          }
+          if (out[out.length-1]===';'){
+            out = out.substring(0,out.length-1);
+          }
+          out += '\n' + $scope.edited;
+          $scope.edited = out;
+          el = document.getElementById('linearbtn')
+          el.style.visibility = 'hidden';
+          if ($scope.edited[$scope.edited.length-1]==='\n'){
+            $scope.edited = $scope.edited.substring(0,$scope.edited-1);
+          };
+        };
+
+        $scope.copyOutput = function(id) {
+          var el = document.getElementById(id);
+          el.focus();
+          el.select();
+          document.execCommand('copy');
+        };
+      });
+  </script>
+</body>
+
+</html>

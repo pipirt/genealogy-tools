@@ -1,0 +1,36 @@
+body {
+  padding-top: 30px;
+  background-color: #43434B
+}
+p,form {color: #fff}
+textarea {
+  border-radius:3px;
+  width: 100%;
+}
+#uglycite, #tobelinear {
+  height:auto;
+  color:#999;
+  font-weight:400;
+  font-size:30px;
+  width:100%;
+  background:#fff;
+  border-radius:3px;
+  line-height:2em;
+  border:none;
+  box-shadow:0px 0px 5px 1px rgba(0,0,0,0.1);
+  -webkit-transition: height 2s ease;
+  -moz-transition: height 2s ease;
+  -ms-transition: height 2s ease;
+  -o-transition: height 2s ease;
+  transition: height 2s ease;
+}
+.output-row {
+  padding-top: 20px
+}
+h1,h2 {
+  color: #82828c;
+  text-transform: uppercase;
+}
+#output {
+  height: 0px;
+}
