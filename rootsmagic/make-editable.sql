@@ -1,6 +1,7 @@
 /**
  * converts a RootsMagic database into one that can be edited
  * without complications from RMNOCASE callation sequence
+ * run me with: sqlite3 <database>.rmgc < make-editable.sql
  */
 
 PRAGMA foreign_keys=off;
